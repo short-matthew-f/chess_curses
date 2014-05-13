@@ -8,12 +8,19 @@ class Board
     end.flatten(1)
   end
   
-  def initialize(args)
-
+  def initialize
+    @grid = Array.new(8) { Array.new(8) }
   end
   
   def [](pos)
-    
+    x, y = pos
+    @grid[x][y]
+  end
+  
+  def []=(pos, piece)
+    x, y = pos
+    @grid[x][y] = piece
+    piece.pos = pos unless piece.nil?
   end
   
 end
