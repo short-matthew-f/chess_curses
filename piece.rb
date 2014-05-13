@@ -6,6 +6,18 @@ class Piece
     @pos, @color, @board = pos, color, board
     @board[pos] = self
   end
+  
+  def to_s
+    pieces = {
+      King      => { black: "♚", white: "♔" },
+      Queen     => { black: "♛", white: "♕" },
+      Rook      => { black: "♜", white: "♖" },
+      Bishop    => { black: "♝", white: "♗" },
+      Knight    => { black: "♞", white: "♘" },
+      Pawn      => { black: "♟", white: "♙" }
+    }
+    pieces[self.class][self.color]    
+  end
 
   def is_empty?(pos)
     Board.squares.include?(pos) && board[pos] == nil
@@ -19,6 +31,10 @@ class Piece
     Board.squares.select do |pos|
       is_empty?(pos) || holds_enemy?(pos)
     end
+  end
+  
+  def attackable_positions
+    self.moves
   end
 
 end
@@ -108,14 +124,18 @@ class Pawn < Piece
     color == :white ? [-1,0] : [1,0]
   end
   
+  def attackable_positions
+    diagonal_one = [self.pos[0] + direction[0], self.pos[1] - 1]
+    diagonal_two = [self.pos[0] + direction[0], self.pos[1] + 1]
+    
+    [diagonal_one, diagonal_two].select { |attack| holds_enemy?(attack) }
+  end
+  
   def moves
     result = []
     
     one_forward = [direction[0] + self.pos[0], self.pos[1]]
     two_forward = [2 * direction[0] + self.pos[0], self.pos[1]]
-    
-    diagonal_one = [self.pos[0] + direction[0], self.pos[1] - 1]
-    diagonal_two = [self.pos[0] + direction[0], self.pos[1] + 1]
     
     # this checks the square in front, and then if it is empty and we've
     # not moved, checks the next one too
@@ -128,13 +148,6 @@ class Pawn < Piece
       end
     end
     
-    # this checks the two diagonals from the pawn for enemies
-    [diagonal_one, diagonal_two].each do |attack|
-      if holds_enemy?(attack)
-        result << attack
-      end
-    end
-    
-    result
+    result + attackable_positions
   end
 end
