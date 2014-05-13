@@ -90,19 +90,6 @@ class Board
     board  
   end
   
-  def checkmate?(color)
-    hope = false
-    self.pieces(color).each do |piece|
-      piece.moves.each do |next_move|
-        board = self.dup
-        board.move_to(next_move,piece)
-        hope = true unless board.in_check?(color)
-        break if hope
-      end
-    end
-    !hope
-  end
-  
   def populate
     (0..7).map do |col|
       Pawn.new([1, col], :black, self)
