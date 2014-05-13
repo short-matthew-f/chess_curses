@@ -36,7 +36,11 @@ class Piece
   def attackable_positions
     self.moves
   end
-
+  
+  def puts_in_check?(pos)
+    new_board = self.board.dup
+    new_board.move_to(pos, new_board[self.pos]).in_check?(self.color)
+  end
 end
 
 class SteppingPiece < Piece
@@ -78,7 +82,7 @@ class SlidingPiece < Piece
       while Board.squares.include?(current_pos) &&
         (is_empty?(current_pos) || holds_enemy?(current_pos))
         
-        result << current_pos 
+        result << current_pos
         
         break if holds_enemy?(current_pos)
         
@@ -113,29 +117,33 @@ end
 
 class Pawn < Piece
   
-  attr_reader :unmoved
-  
   def initialize(pos, color, board)
     super(pos, color, board)
-    @unmoved = true
   end
   
   def direction
-    color == :white ? [-1,0] : [1,0]
+    (self.color == :white) ? [-1,0] : [1,0]
   end
   
   def attackable_positions
-    diagonal_one = [self.pos[0] + direction[0], self.pos[1] - 1]
-    diagonal_two = [self.pos[0] + direction[0], self.pos[1] + 1]
+    direction = (self.color == :white) ? -1 : 1
+    
+    diagonal_one = [self.pos[0] + direction, self.pos[1] - 1]
+    diagonal_two = [self.pos[0] + direction, self.pos[1] + 1]
     
     [diagonal_one, diagonal_two].select { |attack| holds_enemy?(attack) }
   end
   
+  def moved?
+    (self.color == :white) ? (self.pos[0] != 6) : (self.pos[0] != 1)
+  end
+  
   def moves
     result = []
+    direction = (self.color == :white) ? -1 : 1
     
-    one_forward = [direction[0] + self.pos[0], self.pos[1]]
-    two_forward = [2 * direction[0] + self.pos[0], self.pos[1]]
+    one_forward = [direction + self.pos[0], self.pos[1]]
+    two_forward = [2 * direction + self.pos[0], self.pos[1]]
     
     # this checks the square in front, and then if it is empty and we've
     # not moved, checks the next one too
@@ -143,11 +151,11 @@ class Pawn < Piece
       
       result << one_forward
       
-      if @unmoved && is_empty?(two_forward)
+      if !self.moved? && is_empty?(two_forward)
         result << two_forward
       end
     end
     
-    result + attackable_positions
+    (result + attackable_positions)
   end
 end

@@ -11,8 +11,8 @@ class Board
   def initialize
     @grid = Array.new(8) { Array.new(8) }
     @pieces_captured = []
-    populate
   end
+  
   
   def [](pos)
     x, y = pos
@@ -35,7 +35,7 @@ class Board
   
   # board.move_to([3,5], pawn)
   def move_to(target_pos, piece)
-    if move_value?(target_pos, piece)
+    if move_valid?(target_pos, piece)
       # if the target is occupied, capture it
       @pieces_captured << self[target_pos] if occupied?(target_pos)
     
@@ -43,8 +43,14 @@ class Board
       self[piece.pos] = nil
       self[target_pos] = piece
     else
-      raise "Your #{piece.class} at #{piece.pos} cannot move to #{target_pos}"
+      raise "Your #{piece.class.to_s.downcase} at #{un_pos(piece.pos)} cannot move to #{un_pos(target_pos)}"
     end
+    self
+  end
+
+  def un_pos(pos)
+    letters = ('A'..'H').to_a
+    "#{letters[pos[1]]}#{8-pos[0]}"
   end
   
   def pieces(color)
@@ -65,11 +71,36 @@ class Board
   end
   
   def in_check?(color)
-    king_pos = pieces(color).select{ |p| p.is_a?(King) }[0].pos
+    king = pieces(color).select { |p| p.is_a?(King) }[0]
+    king_pos = king.pos
     enemy_color = (color == :white ? :black : :white)
-    pieces(enemy_color).any? do |piece|
-      piece.moves.include?(king_pos)
+    check = false
+    enemy_pieces = pieces(enemy_color)
+    enemy_pieces.each do |piece|
+      check = true if piece.attackable_positions.include?(king_pos)
     end
+    check
+  end
+  
+  def dup
+    board = Board.new
+    (pieces(:white) + pieces(:black)).each do |piece|
+      p = piece.class.new(piece.pos,piece.color,board)    
+    end
+    board  
+  end
+  
+  def checkmate?(color)
+    hope = false
+    self.pieces(color).each do |piece|
+      piece.moves.each do |next_move|
+        board = self.dup
+        board.move_to(next_move,piece)
+        hope = true unless board.in_check?(color)
+        break if hope
+      end
+    end
+    !hope
   end
   
   def populate
