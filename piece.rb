@@ -84,11 +84,11 @@ class SlidingPiece < Piece
     
     self.class::DELTAS.each do |delta|
       current_pos = [self.pos[0]+delta[0], self.pos[1]+delta[1]]
-      while Board.squares.include?(current_pos) &&
-        (is_empty?(current_pos) || holds_enemy?(current_pos))
+      while 
+        Board.squares.include?(current_pos) &&
+          (is_empty?(current_pos) || holds_enemy?(current_pos))
         
-        result << current_pos
-        
+        result << current_pos     
         break if holds_enemy?(current_pos)
         
         current_pos = [current_pos[0]+delta[0], current_pos[1]+delta[1]]

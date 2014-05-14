@@ -37,10 +37,9 @@ class Board
   
   def move_to(target_pos, piece)
     if move_valid?(target_pos, piece)
-      # if the target is occupied, capture it
+      
       @pieces_captured << self[target_pos] if occupied?(target_pos)
     
-      # set where we're coming from to nil, it's now empty
       self[piece.pos] = nil
       self[target_pos] = piece
     else
@@ -68,11 +67,11 @@ class Board
   end
   
   def dup
-    board = Board.new
-    (pieces(:white) + pieces(:black)).each do |piece|
-      p = piece.class.new(piece.pos,piece.color,board)    
-    end
-    board  
+    Board.new.tap do |board|
+      (pieces(:white) + pieces(:black)).each do |piece|
+        piece.class.new(piece.pos,piece.color,board)    
+      end
+    end 
   end
   
   def populate

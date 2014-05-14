@@ -149,15 +149,14 @@ class Chess
   
   def checkmate?
     return false unless in_check?
-    lose_game = true
-    my_friends = board.pieces(current_player)
-    my_friends.each do |friend|
-      their_moves = friend.moves
-      their_moves.each do |target|
-        lose_game = false unless check_next_move(friend.pos, target)
-      end  
+    
+    board
+      .pieces(current_player)
+      .all? do |piece|
+        piece.moves.all? do |target|
+          check_next_move(piece.pos, target)
+      end
     end
-    lose_game
   end
   
   def check_next_move(source, target)
