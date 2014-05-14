@@ -17,7 +17,6 @@ class Board
   
   # @en_passant = { active: false, capturing_pieces: nil, capturable_piece: nil }
   
-  
   def [](pos)
     x, y = pos
     @grid[x][y]
@@ -47,21 +46,16 @@ class Board
       self[piece.pos] = nil
       self[target_pos] = piece
     else
-      raise "Your #{piece.class.to_s.downcase} at #{un_pos(piece.pos)} cannot move to #{un_pos(target_pos)}"
+      raise ChessErrors::InvalidMoveError.new(target_pos, piece)
     end
     self
-  end
-
-  def un_pos(pos)
-    letters = ('A'..'H').to_a
-    "#{letters[pos[1]]}#{8-pos[0]}"
   end
   
   def pieces(color)
     @grid
       .flatten
       .compact
-      .select {|piece| piece.color == color}
+      .select { |piece| piece.color == color }
   end
   
   def to_s
@@ -77,14 +71,11 @@ class Board
   
   def in_check?(color)
     king = pieces(color).select { |p| p.is_a?(King) }[0]
-    king_pos = king.pos
     enemy_color = (color == :white ? :black : :white)
-    check = false
-    enemy_pieces = pieces(enemy_color)
-    enemy_pieces.each do |piece|
-      check = true if piece.attackable_positions.include?(king_pos)
+    
+    pieces(enemy_color).any? do |piece|
+      piece.attackable_positions.include?(king.pos)
     end
-    check
   end
   
   def dup

@@ -1,12 +1,14 @@
+require "./chess_errors.rb"
 require "./piece.rb"
 require "./board.rb"
-
 require 'debugger'
 require 'colorize'
 require 'yaml'
 
 class Chess
   attr_accessor :board
+  
+  # include ChessErrors
   
   def initialize
     if load_prompt
@@ -19,6 +21,7 @@ class Chess
   
   def play
     current_player = :white
+    
     until checkmate?(current_player)
       render_board(current_player)
       prompt_user(current_player)
@@ -42,12 +45,14 @@ class Chess
       .join
       .ljust(12)
       .colorize(background: :light_white)
+      
     black_cap = @board
       .pieces_captured
       .select { |p| p.color == :black }
       .join
       .rjust(12)
       .colorize(background: :light_white) 
+      
     "  #{white_cap}#{black_cap}"    
   end
   
@@ -56,7 +61,7 @@ class Chess
     puts "\n\n"
     puts self.board
     puts print_captured
-    puts "DANGER" if board.in_check?(current_player)
+    puts "#{current_player} is in check." if board.in_check?(current_player)
   end
   
   def prompt_user(current_player)
@@ -66,17 +71,17 @@ class Chess
       input = gets.chomp
       if input == 's'
         File.open('save_game.txt', 'w') { |f| f.write @board.to_yaml }
-        raise "Thanks for saving the game."  
+        raise ChessErrors::GameSaveError
       elsif input == 'q'
         puts "Goodbye"
         abort
       else
         source, target = parse_input(input)
         if board[source].color == current_player
-          raise "THAT WILL KILL YOU" if check_next_move(source, target)
+          raise ChessErrors::PutsInCheckError if check_next_move(source, target)
           move(source, target)
         else
-          raise "That's not your piece."
+          raise ChessErrors::NotYourPieceError
         end
       end
     rescue StandardError => e

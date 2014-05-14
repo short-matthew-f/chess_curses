@@ -2,6 +2,11 @@ class Piece
   attr_accessor :pos, :color 
   attr_reader :board
   
+  def self.un_pos(pos)
+    letters = ('A'..'H').to_a
+    "#{letters[pos[1]]}#{8-pos[0]}"
+  end
+  
   def initialize(pos, color, board)
     @pos, @color, @board = pos, color, board
     @board[pos] = self

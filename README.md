@@ -37,7 +37,7 @@ The Chess class does all of the game logic.
 
 - It checks to see if we're in checkmate.
 - It does error handling for user input.
-- It parses 'nice' input (e.g. `E4` => [4, 4]) 
+- It parses 'nice' input (e.g. `E4 => [4, 4]`) 
 - Can save/load/quit during gameplay.
 
 # TODO
@@ -45,7 +45,6 @@ The Chess class does all of the game logic.
 - Add castling
 - Add en pessant
 - Add promotion
-
 - Add specific error types, rather than just using StandardError over and over.
 
 # TODO in the year 3000
