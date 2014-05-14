@@ -1,5 +1,5 @@
 class Board
-  attr_reader :pieces_captured
+  attr_reader :pieces_captured, :grid
   
   def self.squares
     (0..7).map do |i|

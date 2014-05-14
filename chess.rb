@@ -25,7 +25,7 @@ class Chess
     until checkmate?
       render_board
       print_check_message if in_check?
-      prompt_user
+      get_player_input
       switch_player
     end
     
@@ -36,8 +36,7 @@ class Chess
   protected
   
   def switch_player
-    player = @players.shift
-    @players << player
+    @players.rotate!
   end
   
   def current_player
@@ -55,21 +54,21 @@ class Chess
   end
   
   def print_captured
-    white_cap = board
-      .pieces_captured
-      .select { |p| p.color == :white }
-      .join
-      .ljust(12)
-      .colorize(background: :light_white)
+    captured_white_pieces = board
+                              .pieces_captured
+                              .select { |p| p.color == :white }
+                              .join
+                              .ljust(12)
+                              .colorize(background: :light_white)
       
-    black_cap = board
-      .pieces_captured
-      .select { |p| p.color == :black }
-      .join
-      .rjust(12)
-      .colorize(background: :light_white) 
+    captured_black_pieces = board
+                              .pieces_captured
+                              .select { |p| p.color == :black }
+                              .join
+                              .rjust(12)
+                              .colorize(background: :light_white) 
       
-    "  #{white_cap}#{black_cap}"    
+    "  #{captured_white_pieces}#{captured_black_pieces}"    
   end
   
   def print_win_message
@@ -88,30 +87,55 @@ class Chess
     puts print_captured
   end
   
-  def prompt_user
+  def save_game
+    File.open('save_game.txt', 'w') { |f| f.write board.to_yaml }
+    raise ChessErrors::GameSaveError
+  end
+  
+  def end_game
+    puts "Thanks for playing chess.  See you soon."
+    abort
+  end
+  
+  def process_move(input)
+    source, target = parse_input(input)
+    
+    if board[source].color == current_player
+      raise ChessErrors::PutsInCheckError if check_next_move(source, target)
+      
+      move(source, target)
+    else
+      raise ChessErrors::NotYourPieceError
+    end    
+  end
+  
+  def get_player_input
     begin
-      puts "#{current_player.capitalize}'s move.  Enter move (e.g. E2-E4) or (s)ave/(q)uit."
-      print "> "
+      prompt_player
+      
       input = gets.chomp
-      if input == 's'
-        File.open('save_game.txt', 'w') { |f| f.write board.to_yaml }
-        raise ChessErrors::GameSaveError
-      elsif input == 'q'
-        puts "Goodbye"
-        abort
+      raise ChessErrors::BadInputError unless valid_input?(input)
+      
+      case input
+      when 's' || 'S'
+        save_game
+      when 'q' || 'Q'
+        end_game
       else
-        source, target = parse_input(input)
-        if board[source].color == current_player
-          raise ChessErrors::PutsInCheckError if check_next_move(source, target)
-          move(source, target)
-        else
-          raise ChessErrors::NotYourPieceError
-        end
+        process_move(input)
       end
     rescue StandardError => e
       puts e.message
       retry
     end
+  end
+  
+  def prompt_player
+    print "#{current_player.capitalize}'s move.  Enter move (e.g. E2-E4) or (s)ave/(q)uit.\n> "
+  end
+  
+  def valid_input?(input)
+    input == 's' || input == 'q' || input[/[a-hA-H][1-8]-[a-hA-H][1-8]/]
   end
   
   def in_check?(player = self.current_player, board = @board)
