@@ -6,7 +6,7 @@ require 'colorize'
 require 'yaml'
 
 class Chess
-  attr_accessor :board
+  attr_accessor :board, :players
   
   # include ChessErrors
   
@@ -17,20 +17,36 @@ class Chess
       @board = Board.new
       @board.populate
     end
+    
+    @players = [:black, :white]
   end
   
   def play
-    current_player = :white
-    
-    until checkmate?(current_player)
-      render_board(current_player)
-      prompt_user(current_player)
-      current_player = (current_player == :white ? :black : :white)      
+    until checkmate?
+      render_board
+      print_check_message if in_check?
+      prompt_user
+      switch_player
     end
+    
+    print_win_message
   end
   
   
   protected
+  
+  def switch_player
+    player = @players.shift
+    @players << player
+  end
+  
+  def current_player
+    players.last
+  end
+  
+  def next_player
+    players.first
+  end
   
   def load_prompt
     puts "Would you like to load a game? (y/n)"
@@ -39,14 +55,14 @@ class Chess
   end
   
   def print_captured
-    white_cap = @board
+    white_cap = board
       .pieces_captured
       .select { |p| p.color == :white }
       .join
       .ljust(12)
       .colorize(background: :light_white)
       
-    black_cap = @board
+    black_cap = board
       .pieces_captured
       .select { |p| p.color == :black }
       .join
@@ -56,21 +72,29 @@ class Chess
     "  #{white_cap}#{black_cap}"    
   end
   
-  def render_board(current_player)
-    system "clear"
-    puts "\n\n"
-    puts self.board
-    puts print_captured
-    puts "#{current_player} is in check." if board.in_check?(current_player)
+  def print_win_message
+    render_board
+    puts "Checkmate!  #{next_player.capitalize} has won."
   end
   
-  def prompt_user(current_player)
+  def print_check_message
+    puts "#{current_player.capitalize} is in check."
+  end
+  
+  def render_board
+    system "clear"
+    puts "\n\n"
+    puts board
+    puts print_captured
+  end
+  
+  def prompt_user
     begin
       puts "#{current_player.capitalize}'s move.  Enter move (e.g. E2-E4) or (s)ave/(q)uit."
       print "> "
       input = gets.chomp
       if input == 's'
-        File.open('save_game.txt', 'w') { |f| f.write @board.to_yaml }
+        File.open('save_game.txt', 'w') { |f| f.write board.to_yaml }
         raise ChessErrors::GameSaveError
       elsif input == 'q'
         puts "Goodbye"
@@ -90,10 +114,19 @@ class Chess
     end
   end
   
-  def checkmate?(color)
-    return false if !@board.in_check?(color)
+  def in_check?(player = self.current_player, board = @board)
+    king = board.pieces(player).select { |p| p.is_a?(King) }[0]
+    enemy = (player == :white ? :black : :white)
+    
+    board.pieces(enemy).any? do |piece|
+      piece.attackable_positions.include?(king.pos)
+    end
+  end
+  
+  def checkmate?
+    return false unless in_check?
     lose_game = true
-    my_friends = @board.pieces(color)
+    my_friends = board.pieces(current_player)
     my_friends.each do |friend|
       their_moves = friend.moves
       their_moves.each do |target|
@@ -104,9 +137,9 @@ class Chess
   end
   
   def check_next_move(source, target)
-    b = @board.dup
+    b = board.dup
     b.move_to(target, b[source])
-    b.in_check?(b[target].color)
+    in_check?(b[target].color, b)
   end
   
   def move(source, target)

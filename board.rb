@@ -2,7 +2,6 @@ class Board
   attr_reader :pieces_captured
   
   def self.squares
-    #[[0,0], [0,1]]
     (0..7).map do |i|
       (0..7).map do |j|
         [i, j]
@@ -36,7 +35,6 @@ class Board
     piece.moves.include?(target_pos)
   end
   
-  # board.move_to([3,5], pawn)
   def move_to(target_pos, piece)
     if move_valid?(target_pos, piece)
       # if the target is occupied, capture it
@@ -67,15 +65,6 @@ class Board
         square.nil? ? "   ".colorize(background: color) : " #{square} ".colorize(background: color)
       end.join
     end.join("\n") + "\n  " + letters.map { |let| " #{let} "}.join
-  end
-  
-  def in_check?(color)
-    king = pieces(color).select { |p| p.is_a?(King) }[0]
-    enemy_color = (color == :white ? :black : :white)
-    
-    pieces(enemy_color).any? do |piece|
-      piece.attackable_positions.include?(king.pos)
-    end
   end
   
   def dup
