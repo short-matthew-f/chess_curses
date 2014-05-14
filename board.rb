@@ -14,8 +14,6 @@ class Board
     @pieces_captured = []
   end
   
-  # @en_passant = { active: false, capturing_pieces: nil, capturable_piece: nil }
-  
   def [](pos)
     x, y = pos
     @grid[x][y]
