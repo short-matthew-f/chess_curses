@@ -1,17 +1,17 @@
-## chess.rb
+# chess.rb
 
 An implementation of chess in ruby, without AI
 
-## to play
+# to play
 
     loop do
         ruby chess.rb
         enjoy
     end
 
-## what we've accomplished
+# what we've accomplished
 
-# implemented pieces
+## implemented pieces
 
 Chess pieces are weird because there are many different ways they move.
 
@@ -21,7 +21,7 @@ Chess pieces are weird because there are many different ways they move.
 
 In addition to knowing how to move, they also know how to render themselves.  It's cute, and uses Unicode.
 
-# implemented a board class
+## implemented a board class
 
 The chess board does a fair bit of lifting for us. 
 
@@ -29,7 +29,7 @@ The chess board does a fair bit of lifting for us.
 - It can see if a color is in check.
 - It actually removes pieces and places them an a new square for us.
 
-# implemented a main game class, Chess
+## implemented a main game class, Chess
 
 The Chess class does all of the game logic.
 
@@ -37,7 +37,7 @@ The Chess class does all of the game logic.
 - It does error handling for user input.
 - It parses 'nice' input (e.g. `E4` => [4, 4]) 
 
-## TODO
+# TODO
 
 - Add colors
 - Only check for checkmate if in check
@@ -48,6 +48,6 @@ The Chess class does all of the game logic.
 - Add specific error types, rather than just using StandardError over and over.
 - Maybe play with `curses` gem to make the interface swank in shell.
 
-## TODO in the year 3000
+# TODO in the year 3000
 
 - Port code to `jruby` and make the interface swank in an 'embeddable in a webpage' sorta way.
