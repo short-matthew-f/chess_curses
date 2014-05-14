@@ -28,6 +28,8 @@ The chess board does a fair bit of lifting for us.
 - It reports back subsets of the pieces still on it
 - It can see if a color is in check.
 - It actually removes pieces and places them an a new square for us.
+- Renders prettily with color scheme.
+- Keep track of and displays captured pieces.
 
 ## implemented a main game class, Chess
 
@@ -36,18 +38,17 @@ The Chess class does all of the game logic.
 - It checks to see if we're in checkmate.
 - It does error handling for user input.
 - It parses 'nice' input (e.g. `E4` => [4, 4]) 
+- Can save/load/quit during gameplay.
 
 # TODO
 
-- Add colors
-- Only check for checkmate if in check
 - Add castling
 - Add en pessant
 - Add promotion
-- Add serialization of board state for resume
+
 - Add specific error types, rather than just using StandardError over and over.
-- Maybe play with `curses` gem to make the interface swank in shell.
 
 # TODO in the year 3000
 
 - Port code to `jruby` and make the interface swank in an 'embeddable in a webpage' sorta way.
+- Maybe play with `curses` gem to make the interface swank in shell.

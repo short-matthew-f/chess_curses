@@ -1,4 +1,6 @@
 class Board
+  attr_reader :pieces_captured
+  
   def self.squares
     #[[0,0], [0,1]]
     (0..7).map do |i|
@@ -12,6 +14,8 @@ class Board
     @grid = Array.new(8) { Array.new(8) }
     @pieces_captured = []
   end
+  
+  # @en_passant = { active: false, capturing_pieces: nil, capturable_piece: nil }
   
   
   def [](pos)
@@ -62,10 +66,11 @@ class Board
   
   def to_s
     letters = ('A'..'H').to_a
-    @grid.each_with_index.map do |row, index|
-      "#{8-index} " + 
-      row.map do |square|
-        square.nil? ? "[ ]" : "[#{square}]"
+    @grid.each_with_index.map do |row, r_index|
+      "#{8-r_index} " + 
+      row.each_with_index.map do |square, c_index|
+        color = ((r_index+c_index) % 2 == 0) ? :light_white : :light_black
+        square.nil? ? "   ".colorize(background: color) : " #{square} ".colorize(background: color)
       end.join
     end.join("\n") + "\n  " + letters.map { |let| " #{let} "}.join
   end
