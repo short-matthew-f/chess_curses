@@ -51,8 +51,8 @@ All carry own messages, but also some take data necessary for message from game 
 - Add castling
 - Add en pessant
 - Add promotion
+- Maybe play with `curses` gem to make the interface swank in shell.
 
 # TODO in the year 3000
 
 - Port code to `jruby` and make the interface swank in an 'embeddable in a webpage' sorta way.
-- Maybe play with `curses` gem to make the interface swank in shell.

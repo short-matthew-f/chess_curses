@@ -78,12 +78,7 @@ grid:
     pos:
     - 1
     - 4
-  - !ruby/object:Pawn
-    board: *1
-    color: :black
-    pos:
-    - 1
-    - 5
+  - 
   - !ruby/object:Pawn
     board: *1
     color: :black
@@ -109,7 +104,12 @@ grid:
   - 
   - 
   - 
-  - 
+  - !ruby/object:Pawn
+    board: *1
+    color: :white
+    pos:
+    - 3
+    - 5
   - 
   - 
 - - 
@@ -152,12 +152,7 @@ grid:
     pos:
     - 6
     - 3
-  - !ruby/object:Pawn
-    board: *1
-    color: :white
-    pos:
-    - 6
-    - 4
+  - 
   - !ruby/object:Pawn
     board: *1
     color: :white
@@ -224,4 +219,10 @@ grid:
     pos:
     - 7
     - 7
-pieces_captured: []
+pieces_captured:
+- !ruby/object:Pawn
+  board: *1
+  color: :black
+  pos:
+  - 3
+  - 5

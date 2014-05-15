@@ -73,26 +73,16 @@ class Board
   end
   
   def populate
+    piece_classes = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+    
+    piece_classes.each_with_index do |piece, col|
+      piece.new([0, col], :black, self)
+      piece.new([7, col], :white, self)
+    end
+
     (0..7).map do |col|
       Pawn.new([1, col], :black, self)
       Pawn.new([6, col], :white, self)
     end
-    [0, 7].map do |col|
-      Rook.new([0, col], :black, self)
-      Rook.new([7, col], :white, self)
-    end
-    [1, 6].map do |col|
-      Knight.new([0, col], :black, self)
-      Knight.new([7, col], :white, self)
-    end
-    [2, 5].map do |col|
-      Bishop.new([0, col], :black, self)
-      Bishop.new([7, col], :white, self)
-    end    
-    Queen.new([0, 3], :black, self)
-    Queen.new([7, 3], :white, self)
-    King.new([0, 4], :black, self)
-    King.new([7, 4], :white, self)
-  end
-  
+  end  
 end

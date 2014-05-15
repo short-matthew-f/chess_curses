@@ -1,12 +1,13 @@
 require "./chess_errors.rb"
 require "./piece.rb"
 require "./board.rb"
+require "./game_render"
 require 'debugger'
 require 'colorize'
 require 'yaml'
 
 class Chess
-  attr_accessor :board, :players
+  attr_accessor :board, :players, :render_engine
   
   # include ChessErrors
   
@@ -19,19 +20,76 @@ class Chess
     end
     
     @players = [:black, :white]
+
+    @render_engine = GameRender.new(@board)
   end
   
   def play
     until checkmate?
-      render_board
-      print_check_message if in_check?
-      get_player_input
+      render_engine.send_message("#{current_player} is in check!") if in_check?
+      run_player_turn
       switch_player
     end
     
-    print_win_message
+    render_engine.send_message("#{next_player} has won the game!")
+    render_engine.window.getch
   end
-  
+
+  def run_player_turn
+    render_engine.draw_board
+    begin
+      action = render_engine.wait_for_source
+      source = first_position if self.send(action)
+      target = render_engine.wait_for_target
+      process_move(source, target)
+    rescue StandardError => e
+      render_engine.send_message(e.message)
+      retry
+    end
+  end 
+
+  def process_move(source, target)
+    if board[source].color == current_player
+      raise ChessErrors::PutsInCheckError if check_next_move(source, target)
+      
+      move(source, target)
+    else
+      raise ChessErrors::NotYourPieceError
+    end    
+  end
+
+  def get_player_input
+    begin
+      prompt_player
+      
+      input = gets.chomp
+      raise ChessErrors::BadInputError unless valid_input?(input)
+      
+      case input
+      when 's' || 'S'
+        save_game
+      when 'q' || 'Q'
+        end_game
+      else
+        process_move(input)
+      end
+    rescue StandardError => e
+      e.message
+      retry
+    end
+  end
+
+  def select_piece
+    true
+  end
+
+  def first_position
+    if board[render_engine.cursor_position] && board[render_engine.cursor_position].color == current_player
+      render_engine.cursor_position
+    else
+      raise ChessErrors::BadInputError
+    end
+  end 
   
   protected
   
@@ -72,12 +130,11 @@ class Chess
   end
   
   def print_win_message
-    render_board
-    puts "Checkmate!  #{next_player.capitalize} has won."
+    render_engine.send_message("Checkmate!  #{next_player.capitalize} has won.")
   end
   
   def print_check_message
-    puts "#{current_player.capitalize} is in check."
+    render_engine.send_message("#{current_player.capitalize} is in check.")
   end
   
   def render_board
@@ -92,42 +149,9 @@ class Chess
     raise ChessErrors::GameSaveError
   end
   
-  def end_game
-    puts "Thanks for playing chess.  See you soon."
+  def quit_game
+    render_engine.send_message("Thanks for playing chess.  See you soon.")
     abort
-  end
-  
-  def process_move(input)
-    source, target = parse_input(input)
-    
-    if board[source].color == current_player
-      raise ChessErrors::PutsInCheckError if check_next_move(source, target)
-      
-      move(source, target)
-    else
-      raise ChessErrors::NotYourPieceError
-    end    
-  end
-  
-  def get_player_input
-    begin
-      prompt_player
-      
-      input = gets.chomp
-      raise ChessErrors::BadInputError unless valid_input?(input)
-      
-      case input
-      when 's' || 'S'
-        save_game
-      when 'q' || 'Q'
-        end_game
-      else
-        process_move(input)
-      end
-    rescue StandardError => e
-      puts e.message
-      retry
-    end
   end
   
   def prompt_player
