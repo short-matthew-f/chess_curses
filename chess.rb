@@ -5,6 +5,9 @@ require "./game_render"
 require 'debugger'
 require 'colorize'
 require 'yaml'
+require 'curses'
+
+include Curses
 
 class Chess
   attr_accessor :board, :players, :render_engine
@@ -26,7 +29,6 @@ class Chess
   
   def play
     until checkmate?
-      render_engine.send_message("#{current_player} is in check!") if in_check?
       run_player_turn
       switch_player
     end
@@ -37,13 +39,35 @@ class Chess
 
   def run_player_turn
     render_engine.draw_board
+    render_engine.show_current_player(current_player)
+
+    if in_check?
+      render_engine.send_message("#{current_player} is in check!")
+      render_engine.window.getch
+      render_engine.clear_message
+    end
+
     begin
       action = render_engine.wait_for_source
       source = first_position if self.send(action)
+
+      # tickle the board with color
+      render_engine.select(source)
+      board[source].moves.map { |pos| render_engine.highlight(pos) }
+      render_engine.draw_board
+
       target = render_engine.wait_for_target
+
+      # remove the colors
+      render_engine.clear_attributes
+      render_engine.draw_board
+
       process_move(source, target)
+
     rescue StandardError => e
       render_engine.send_message(e.message)
+      render_engine.window.getch
+      render_engine.clear_message
       retry
     end
   end 

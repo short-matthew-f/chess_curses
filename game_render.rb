@@ -1,11 +1,3 @@
-require 'curses'
-require 'colorize'
-require 'yaml'
-require './board.rb'
-require './piece.rb'
-
-include Curses
-
 class GameRender
   attr_reader :window, :board, :board_attributes, :cursor_position
   
@@ -13,7 +5,8 @@ class GameRender
     @board = board || YAML::load_file('save_game.txt')
     @board_attributes = set_initial_attributes
     @cursor_position = [0, 0]
-    initialize_window  
+    @current_message = ""
+    initialize_windows 
   end
   
   def initialize_colors
@@ -25,15 +18,26 @@ class GameRender
     init_pair(4, COLOR_WHITE, COLOR_YELLOW)
     # colors for when a piece has been picked
     init_pair(5, COLOR_RED, COLOR_WHITE)
-    init_pair(6, COLOR_RED, COLOR_BLACK)    
+    init_pair(6, COLOR_RED, COLOR_BLACK) 
+    # color for clearing messages
+    init_pair(7, COLOR_BLACK, COLOR_BLACK)  
   end
   
   def draw_board
+    reset_screen
     draw_board_tiles
     draw_pieces_on_board
   end
 
+  def reset_screen
+    Curses.clear
+    Curses.refresh
+  end
+
   def wait_for_source
+    i, j = cursor_position
+    window.setpos(i, j)
+
     loop do 
       i, j = cursor_position
       x, y = pos_to_coord([i,j])
@@ -66,6 +70,9 @@ class GameRender
   end
 
   def wait_for_target
+    i, j = cursor_position
+    window.setpos(i, j)
+
     loop do 
       i, j = cursor_position
       x, y = pos_to_coord([i,j])
@@ -93,22 +100,21 @@ class GameRender
   end
 
   def send_message(message)
-    clear_message 
-
-    i, j = cursor_position
-    window.setpos(10, 2)
-    window.addstr(message)
-    window.setpos(i, j)
+    @message_window = @window.subwin(3, message.length + 2, 10, 1)
+    @message_window.box("|", "-", "+")
+    @message_window.setpos(1,1)
+    @message_window.attron(color_pair(5)|A_BLINK)
+    @message_window.addstr(message)
+    @message_window.setpos(1,1)
+    @message_window.refresh
 
     nil
   end
 
   def clear_message
-    i, j = cursor_position
-    window.setpos(10, 2)
-    window.addstr(" ".ljust(50))
-    window.setpos(i, j)
-
+    @message_window.clear
+    @message_window.close
+    reset_screen
     nil
   end
 
@@ -120,9 +126,21 @@ class GameRender
     @board_attributes[pos][:select] = !@board_attributes[pos][:select]
   end
 
+  def clear_attributes
+    @board_attributes.map do |pos, h|
+      h[:select] = false
+      h[:highlight] = false
+    end
+  end
+
+  def show_current_player(player)
+    @player_window.setpos(2, 2)
+    @player_window.addstr(player == :white ? "W" : "B")
+  end
+
   protected
 
-  def initialize_window
+  def initialize_windows
     init_screen
     @window = Window.new(0, 0, 0, 0)
     @window.keypad(true)
@@ -130,7 +148,9 @@ class GameRender
     cbreak    
     start_color
     initialize_colors
-    @window.bkgd(1)
+
+    
+    @player_window = @window.subwin(3, 3, 1, 27)
   end
   
   def set_initial_attributes
@@ -206,10 +226,4 @@ class GameRender
       window.addstr("#{piece}")
     end
   end
-end
-
-if __FILE__ == $PROGRAM_NAME
-  gr = GameRender.new
-  gr.draw_board
-  gr.wait_for_input
 end
